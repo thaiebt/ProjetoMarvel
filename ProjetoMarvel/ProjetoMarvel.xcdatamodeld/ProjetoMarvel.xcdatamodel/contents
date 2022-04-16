@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19461" systemVersion="20G224" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="HeroEntity" representedClassName="HeroEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="heroDescription" optional="YES" attributeType="String"/>
+        <attribute name="heroId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="heroName" optional="YES" attributeType="String"/>
+        <attribute name="heroThumbnailExtension" optional="YES" attributeType="String"/>
+        <attribute name="heroThumbnailPath" optional="YES" attributeType="String"/>
+        <relationship name="heroComics" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ItemsEntity" inverseName="comicsItems" inverseEntity="ItemsEntity"/>
+        <relationship name="heroSeries" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ItemsEntity" inverseName="seriesItems" inverseEntity="ItemsEntity"/>
+    </entity>
+    <entity name="ItemsEntity" representedClassName="ItemsEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="comicsItems" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="HeroEntity" inverseName="heroComics" inverseEntity="HeroEntity"/>
+        <relationship name="seriesItems" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="HeroEntity" inverseName="heroSeries" inverseEntity="HeroEntity"/>
+    </entity>
+    <elements>
+        <element name="HeroEntity" positionX="-63" positionY="-18" width="128" height="134"/>
+        <element name="ItemsEntity" positionX="-54" positionY="27" width="128" height="74"/>
+    </elements>
+</model>
