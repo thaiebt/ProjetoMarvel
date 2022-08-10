@@ -9,7 +9,7 @@ import Foundation
 import Lottie
 
 class Animation {
-    var loading: AnimationView = {
+    var loadingView: AnimationView = {
        var animation = AnimationView(name: "loading-state")
         animation.contentMode = .scaleAspectFit
         animation.loopMode = .loop
@@ -19,12 +19,12 @@ class Animation {
     }()
     
     func showLoadingIcon() {
-        self.loading.isHidden = false
-        self.loading.play()
+        self.loadingView.isHidden = false
+        self.loadingView.play()
     }
     
     func hidden() {
-        self.loading.isHidden = true
-        self.loading.stop()
+        self.loadingView.isHidden = true
+        self.loadingView.stop()
     }
 }

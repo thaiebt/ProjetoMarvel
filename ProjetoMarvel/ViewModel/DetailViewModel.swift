@@ -83,18 +83,11 @@ class DetailViewModel {
     
     func setUrlButtonAction() {
         if let urls = touchedHero.urls {
-            var urlDetails = ""
-            for url in urls {
-                guard let type = url.type else {return}
-                if type == "detail"{
-                    guard let url = url.url else {return}
-                    urlDetails = url
-                    break
-                }
+            let urlDetails = urls.filter { url in
+                url.type == "detail"
             }
-            guard let url = URL(string: urlDetails) else { return }
+            guard let url = URL(string: urlDetails.first?.url ?? "") else { return }
             let safariViewController = SFSafariViewController(url: url)
-            
             self.view.showDetailViewController(safariViewController, sender: nil)
         }
     }

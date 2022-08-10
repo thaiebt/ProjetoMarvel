@@ -7,7 +7,12 @@
 
 import Foundation
 import Firebase
-import UIKit
+
+protocol FireBaseProtocol {
+    func selectedScreenView(screenName: String, screenClass: String)
+    func selectedHero(heroName: String)
+    func selectedID(nameID: String)
+}
 
 class AnalyticsServices: FireBaseProtocol {
     func selectedScreenView(screenName: String, screenClass: String){

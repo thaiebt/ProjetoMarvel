@@ -32,12 +32,10 @@ class MainViewModel {
     
     func fillArrayHeroDataBase() {
         heroesDataBase = DataBaseController.getDataFromCoreData()
-        print(heroesDataBase)
         var returnedHeroes: [Results] = []
         
         if heroesDataBase.count > 0 {
             for hero in heroesDataBase {
-                
                 if hero.heroName != nil {
                     var comicsItems: [Items] = []
                     guard let comicsItemsData = hero.heroComics?.allObjects as? [ItemsEntity] else { return }
@@ -56,7 +54,14 @@ class MainViewModel {
                     }
                     let series = Series(items: seriesItems)
                     
-                    let hero = Results(id: Int(hero.heroId), name: hero.heroName, description: hero.heroDescription, thumbnail: Image(path: hero.heroThumbnailPath, imageExtension: hero.heroThumbnailExtension), comics: comics, series: series, urls: nil)
+                    let hero = Results(id: Int(hero.heroId),
+                                       name: hero.heroName,
+                                       description: hero.heroDescription,
+                                       thumbnail: Image(path: hero.heroThumbnailPath,
+                                                        imageExtension: hero.heroThumbnailExtension),
+                                       comics: comics,
+                                       series: series,
+                                       urls: nil)
                     
                     returnedHeroes.append(hero)
                 }
@@ -66,12 +71,10 @@ class MainViewModel {
                     return (name1?.localizedCaseInsensitiveCompare(name2 ?? "") == .orderedAscending)
                 })
             }
-            self.setArrays(arrayHeroes: arrayHeroes)
-
-            print(self.arrayHorizontal.count)
-            self.view?.reloadDataCollectionViewHorizontal()
-            self.view?.reloadDataCollectionViewVertical()
-
+            
+            setArrays(arrayHeroes: arrayHeroes)
+            view?.reloadDataCollectionViewHorizontal()
+            view?.reloadDataCollectionViewVertical()
         }
     }
     
@@ -79,32 +82,19 @@ class MainViewModel {
         let context = DataBaseController.persistentContainer.viewContext
         context.processPendingChanges()
         
-        api.getDados(url: api.getURL.setUrl()) { result in
+        api.getDados(url: api.getURL.setUrl()) { [weak self] result in
+            guard let self = self else { return }
             switch result {
             case .success(let hero):
                 guard let heroes = hero?.data?.results else {return}
                 self.arrayHeroes = heroes
                 self.setArrays(arrayHeroes: self.arrayHeroes)
-                DataBaseController.saveData(heroes: heroes)
-
                 self.view?.reloadDataCollectionViewHorizontal()
                 self.view?.reloadDataCollectionViewVertical()
-
+                DataBaseController.saveData(heroes: heroes)
             case .failure(let error):
-                switch error {
-                case .noInternet:
-                    self.fillArrayHeroDataBase()
-                    self.error = error
-                    print("No Internet Access")
-                case .emptyData:
-                    self.fillArrayHeroDataBase()
-                    self.error = error
-                    print("Empty Data")
-                case .invalidData:
-                    self.fillArrayHeroDataBase()
-                    self.error = error
-                    print("Invalid Data")
-                }
+                print(error.localizedDescription)
+                self.fillArrayHeroDataBase()
             }
         }
     }
@@ -113,38 +103,33 @@ class MainViewModel {
         api.offset = self.arrayVertical.count + arrayHorizontal.count
         let limit = 50
         
-        api.getDados(url: api.getURL.setUrlInfiniteScroll(offset: api.offset, limit: limit)) { result in
+        api.getDados(url: api.getURL.setUrlInfiniteScroll(offset: api.offset, limit: limit)) { [weak self] result in
+            guard let self = self else { return }
             switch result {
             case .success(let hero):
                 guard let heroes = hero?.data?.results else {return}
                 self.arrayVertical += heroes
                 DataBaseController.saveData(heroes: heroes)
                 self.api.offset += limit
-
                 self.view?.reloadDataCollectionViewVertical()
-
             case .failure(let error):
                 switch error {
                 case .noInternet:
-                    print("No Internet Access")
-                    self.error = error
                     self.view?.showUserAlert(message: "You have no internet access, log in and try to reload more characters")
-                case .emptyData:
-                    print("Empty Data")
-                    self.error = error
-                case .invalidData:
+                case .emptyData, .invalidData:
                     self.view?.showUserAlert(message: "Unable to connect to server, wait a moment and try again")
-                    self.error = error
-                    print("Invalid Data")
                 }
             }
         }
     }
     
     func getSearchHeroAPI(searchText: String) {
-        api.getDados(url: api.getURL.setUrlSearchName(nameStartsWith: searchText, offset: api.offset, limit: 50)) { result in
-            if case .success(let hero) = result {
-//                print(hero?.data?.results?[0].name)
+        api.getDados(url: api.getURL.setUrlSearchName(nameStartsWith: searchText,
+                                                      offset: api.offset,
+                                                      limit: 50)) {[weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let hero):
                 guard let heroes = hero?.data?.results, heroes.count > 0 else {
                     self.view?.reloadDataCollectionViewVertical()
                     self.view?.labelNoDataIsNotHidden()
@@ -157,32 +142,32 @@ class MainViewModel {
                     self.isFilterEnd = true
                 }
                 self.view?.reloadDataCollectionViewVertical()
+            case .failure(let error):
+                print(error.localizedDescription)
             }
         }
     }
     
     func setupSearchBarWhenIsEmpty() {
-        self.isFilter = false
-        self.isFilterEnd = false
-        self.api.offset = 0
-        
-        self.view?.reloadDataCollectionViewVertical()
-        self.view?.labelNoDataIsHidden()
-
-        self.setArrays(arrayHeroes: self.arrayHeroes)
+        isFilter = false
+        isFilterEnd = false
+        api.offset = 0
+        view?.reloadDataCollectionViewVertical()
+        view?.labelNoDataIsHidden()
+        setArrays(arrayHeroes: self.arrayHeroes)
     }
     
     func startSearchBarWhenIsNotEmpty(searchText: String) {
         isFilter = true
         if api.statusCode == 200 {
-            self.arrayVertical = []
-            self.getSearchHeroAPI(searchText: searchText)
+            arrayVertical = []
+            getSearchHeroAPI(searchText: searchText)
         } else {
-            self.arrayVertical = arrayVertical.filter { hero in
+            arrayVertical = arrayVertical.filter { hero in
                 guard let heroName = hero.name else {return false}
                 return heroName.contains(searchText)
             }
-            self.view?.reloadDataCollectionViewVertical()
+            view?.reloadDataCollectionViewVertical()
         }
     }
 }

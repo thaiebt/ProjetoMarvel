@@ -10,8 +10,8 @@ import Kingfisher
 
 class HorizontalCollectionViewCell: UICollectionViewCell {
     
-    var gradient: Bool = false
-    let imageItem: UIImageView = {
+    private var gradient: Bool = false
+    private lazy var imageItem: UIImageView = {
         let image = UIImageView()
         image.translatesAutoresizingMaskIntoConstraints = false
         image.contentMode = .scaleAspectFill
@@ -23,20 +23,20 @@ class HorizontalCollectionViewCell: UICollectionViewCell {
         return image
     }()
     
-    let viewAccessibilityImage: UIView = {
-        let viewAccessibility = UIView()
-        viewAccessibility.translatesAutoresizingMaskIntoConstraints = false
-        viewAccessibility.contentMode = .scaleAspectFill
-        viewAccessibility.clipsToBounds = true
-        viewAccessibility.layer.cornerRadius = 15
-        viewAccessibility.backgroundColor = UIColor(red: 32/255.0, green: 32/255.0, blue: 32/255.0, alpha: 1.0)
-        viewAccessibility.isHidden = true
-        viewAccessibility.isAccessibilityElement = false
+    private lazy var viewAccessibilityImage: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.contentMode = .scaleAspectFill
+        view.clipsToBounds = true
+        view.layer.cornerRadius = 15
+        view.backgroundColor = UIColor(red: 32/255.0, green: 32/255.0, blue: 32/255.0, alpha: 1.0)
+        view.isHidden = true
+        view.isAccessibilityElement = false
         
-        return viewAccessibility
+        return view
     }()
     
-    let labelName: UILabel = {
+    private lazy var labelName: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 13.0)
         label.numberOfLines = 0
@@ -50,7 +50,7 @@ class HorizontalCollectionViewCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: .zero)
-        self.setupViewCell()
+        self.setupLayout()
     }
     
     override func layoutSubviews(){
@@ -70,24 +70,22 @@ class HorizontalCollectionViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func applyAccessibility(heroName: String, cell: HorizontalCollectionViewCell) {
-        cell.isAccessibilityElement = true
-        cell.accessibilityTraits = .button
-        cell.accessibilityLabel = heroName
-        cell.accessibilityHint = "Double click for more information about the character \(heroName)"
+    private func applyAccessibility(heroName: String) {
+        contentView.isAccessibilityElement = true
+        contentView.accessibilityTraits = .button
+        contentView.accessibilityLabel = heroName
+        contentView.accessibilityHint = "Double click for more information about the character \(heroName)"
     }
     
-    func setupViewCell() {
+    private func setupLayout() {
         contentView.addSubview(viewAccessibilityImage)
         contentView.addSubview(imageItem)
         contentView.addSubview(labelName)
         
-        createImageCollectionCellConstraint()
-        createViewAccessibilityCollectionCellConstraint()
-        createLabelCollectionCellConstraint()
+        setupConstraints()
     }
     
-    func configureCell(cell: HorizontalCollectionViewCell, hero: Results) {
+    func updateCell(hero: Results) {
         guard let name = hero.name else { return }
         labelName.text = name
         
@@ -101,7 +99,7 @@ class HorizontalCollectionViewCell: UICollectionViewCell {
                 imageItem.isHidden = false
                 
                 let url = "\(path)/standard_fantastic.\(imageExtension)"
-                let heroUrlImage = URL(string: url)
+                guard let heroUrlImage = URL(string: url) else { return }
                 imageItem.kf.setImage(with: heroUrlImage,
                                                placeholder: UIImage(named: "placeholder"),
                                                options: [
@@ -114,32 +112,24 @@ class HorizontalCollectionViewCell: UICollectionViewCell {
 
        }
         
-        applyAccessibility(heroName: name, cell: cell)
+        applyAccessibility(heroName: name)
     }
     
-    func createImageCollectionCellConstraint() {
+    func setupConstraints() {
         NSLayoutConstraint.activate([
-            self.imageItem.topAnchor.constraint(equalTo: contentView.topAnchor),
-            self.imageItem.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            self.imageItem.rightAnchor.constraint(equalTo: contentView.rightAnchor),
-            self.imageItem.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-        ])
-    }
-    
-    func createViewAccessibilityCollectionCellConstraint() {
-        NSLayoutConstraint.activate([
-            self.viewAccessibilityImage.topAnchor.constraint(equalTo: contentView.topAnchor),
-            self.viewAccessibilityImage.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            self.viewAccessibilityImage.rightAnchor.constraint(equalTo: contentView.rightAnchor),
-            self.viewAccessibilityImage.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-        ])
-    }
-    
-    func createLabelCollectionCellConstraint() {
-        NSLayoutConstraint.activate([
-           self.labelName.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 153.0),
-            self.labelName.heightAnchor.constraint(equalToConstant: 20.0),
-           self.labelName.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
+            imageItem.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageItem.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            imageItem.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+            imageItem.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            
+            viewAccessibilityImage.topAnchor.constraint(equalTo: contentView.topAnchor),
+            viewAccessibilityImage.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            viewAccessibilityImage.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+            viewAccessibilityImage.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            
+            labelName.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 153.0),
+            labelName.heightAnchor.constraint(equalToConstant: 20.0),
+            labelName.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
 }
